@@ -2,6 +2,8 @@ __author__ = 'maurice'
 from scipy.special import binom
 import sys
 import os
+import math
+
 sys.path.append(os.path.relpath('../'))
 from common import *
 
@@ -53,12 +55,40 @@ def medianString(dna, k):
             median = pattern
     return median
 
-# out = motifEnumeration(lReadT('dna.txt'), 5, 2)
-# print len(out)
+def countMatrix(dna):
+    global ADIC
+    out = [[0 for _ in dna[0]] for _ in ADIC]
+    for str in dna:
+        for i, c in enumerate(str):
+            out[ADIC[c]][i] += 1
+    return out
+
+def profile(matrix):
+    n = sum([x[0] for x in matrix])
+    return [[float(v)/n for v in line] for line in matrix]
+
+def score(matrix):
+    b = ['A', 'C', 'G', 'T']
+    n = sum([x[0] for x in matrix])
+    s = [n for _ in matrix[0]]
+    a = ['' for _ in matrix[0]]
+    for j, line in enumerate(matrix):
+        for i, num in enumerate(line):
+            if n - num < s[i]:
+                s[i] = n - num
+                a[i] = b[j]
+    return sum(s), ''.join(a)
+
+def entropy(profile):
+    return sum([sum([-i*math.log(i, 2) for i in line if i > 0]) for line in profile])
+
+out = entropy(profile(countMatrix(aReadT('dna.txt'))))
+# out = motifEnumeration(aReadT('dna.txt'), 5, 2)
+print out
 # for x in out:
-#     print x,
+#     print x
 # dna = ['ttaccttAAc', 'gAtAtctgtc', 'Acggcgttcg', 'ccctAAAgag', 'cgtcAgAggt']
 # dna = ['AAATTGACGCAT', 'GACGACCACGTT', 'CGTCAGCGCCTG', 'GCTGAGCACCGG', 'AGTACGGGACAG']
 # st = medianString([x.upper() for x in dna], 3)
-# print medianString(lReadT('dna.txt'), 6)
-print neighbours('CAGAAAGGAAGGTCCCCATACACCGACGCACCAGTTTA', 3)
+# print medianString(aReadT('dna.txt'), 6)
+# print neighbours('CAGAAAGGAAGGTCCCCATACACCGACGCACCAGTTTA', 3)

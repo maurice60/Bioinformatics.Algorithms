@@ -1,4 +1,7 @@
 __author__ = 'maurice'
+
+ADIC = {'A':0, 'C':1, 'G':2, 'T':3}
+
 def fRead(fileName):
     with open(fileName, 'r') as x:
         txt = x.read()
@@ -18,6 +21,10 @@ def lReadT(fileName):
     for i in txt.split(" "):
         out.append(i)
     return out
+
+def aReadT(fileName):
+    with open(fileName, 'r') as x:
+        return [line.rstrip('\n').rstrip('\r') for line in x]
 
 def hammingDistance(p, q):
     d = 0
