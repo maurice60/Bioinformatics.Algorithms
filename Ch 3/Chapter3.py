@@ -63,7 +63,10 @@ def countMatrix(dna):
             out[ADIC[c]][i] += 1
     return out
 
-def profile(matrix):
+def profile(matrix, pseudoCounts=True):
+    if pseudoCounts:
+        n = sum([x[0] + 4 for x in matrix])
+        return [[(float(v)+1)/n for v in line] for line in matrix]
     n = sum([x[0] for x in matrix])
     return [[float(v)/n for v in line] for line in matrix]
 
@@ -99,7 +102,7 @@ def profileMostProbable(str, k, profile):
             maxS = s
     return maxS
 
-def greedyMotifSearch(dna, k, t=-1):
+def greedyMotifSearch(dna, k, t=-1, pseudoCounts=True):
     if t == -1:
         t = len(dna)
     if t == 0:
@@ -111,7 +114,7 @@ def greedyMotifSearch(dna, k, t=-1):
     for motif in trials:
         motifs[0] = motif
         for i in range(1, t):
-            motifs[i] = profileMostProbable(dna[i], k, profile(countMatrix(motifs[0:i])))
+            motifs[i] = profileMostProbable(dna[i], k, profile(countMatrix(motifs[0:i]), pseudoCounts))
         this, _ = score(countMatrix(motifs))
         if this < best:
             best = this
