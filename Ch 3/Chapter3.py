@@ -82,13 +82,52 @@ def score(matrix):
 def entropy(profile):
     return sum([sum([-i*math.log(i, 2) for i in line if i > 0]) for line in profile])
 
-out = entropy(profile(countMatrix(aReadT('dna.txt'))))
+def profileProbability(p, profile):
+    global ADIC
+    x = 1
+    for i, c in enumerate(p):
+        x *= profile[ADIC[c]][i]
+    return x
+
+def profileMostProbable(str, k, profile):
+    maxP = 0
+    maxS = str[0:k]
+    for s in [str[i:i+k] for i in xrange(len(str) - k + 1)]:
+        pro = profileProbability(s, profile)
+        if maxP < pro:
+            maxP = pro
+            maxS = s
+    return maxS
+
+def greedyMotifSearch(dna, k, t=-1):
+    if t == -1:
+        t = len(dna)
+    if t == 0:
+        return []
+    bestMotifs = [d[:k] for d in dna]
+    motifs = bestMotifs[:]
+    best, _ = score(countMatrix(bestMotifs))
+    trials = [dna[0][i:i+k] for i in xrange(len(dna[0]) - k + 1)]
+    for motif in trials:
+        motifs[0] = motif
+        for i in range(1, t):
+            motifs[i] = profileMostProbable(dna[i], k, profile(countMatrix(motifs[0:i])))
+        this, _ = score(countMatrix(motifs))
+        if this < best:
+            best = this
+            bestMotifs = motifs[:]
+    return bestMotifs
+
+# out = entropy(profile(countMatrix(aReadT('dna.txt'))))
 # out = motifEnumeration(aReadT('dna.txt'), 5, 2)
-print out
-# for x in out:
-#     print x
 # dna = ['ttaccttAAc', 'gAtAtctgtc', 'Acggcgttcg', 'ccctAAAgag', 'cgtcAgAggt']
 # dna = ['AAATTGACGCAT', 'GACGACCACGTT', 'CGTCAGCGCCTG', 'GCTGAGCACCGG', 'AGTACGGGACAG']
 # st = medianString([x.upper() for x in dna], 3)
 # print medianString(aReadT('dna.txt'), 6)
 # print neighbours('CAGAAAGGAAGGTCCCCATACACCGACGCACCAGTTTA', 3)
+# out = profileMostProbable(fRead('str.txt'), 7, aReadF('dna.txt'))
+# out = aReadF('dna.txt')
+out = greedyMotifSearch(aReadT('dna.txt'), 12)
+# print out
+for x in out:
+    print x

@@ -26,6 +26,14 @@ def aReadT(fileName):
     with open(fileName, 'r') as x:
         return [line.rstrip('\n').rstrip('\r') for line in x]
 
+def aReadF(fileName):
+    with open(fileName, 'r') as x:
+        out = []
+        raw = [l for l in [line.rstrip('\n').rstrip('\r').split() for line in x]]
+        for l in raw:
+            out.append([float(a) for a in l])
+    return out
+
 def hammingDistance(p, q):
     d = 0
     for i, c in enumerate(p):
