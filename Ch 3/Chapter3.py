@@ -3,6 +3,7 @@ from scipy.special import binom
 import sys
 import os
 import math
+import random
 
 sys.path.append(os.path.relpath('../'))
 from common import *
@@ -121,6 +122,88 @@ def greedyMotifSearch(dna, k, t=-1, pseudoCounts=True):
             bestMotifs = motifs[:]
     return bestMotifs
 
+def randomisedMotifSearch(dna, k, t=-1, n=1):
+
+    def searchFun(dna, k, t):
+        bestMotifs = ['' for _ in dna]
+        for i, m in enumerate(dna):
+            d = random.randint(0, len(dna[0])-k)
+            bestMotifs[i] = m[d:d+k]
+        motifs = bestMotifs[:]
+        bestCur = score(countMatrix(bestMotifs))
+        while True:
+            prof = profile(countMatrix(motifs))
+            motifs = [profileMostProbable(x, k, prof) for x in dna]
+            thisS = score(countMatrix(motifs))
+            if thisS < bestCur:
+                bestMotifs = motifs[:]
+                bestCur = thisS
+            else:
+                return bestMotifs, bestCur
+
+    if t == -1:
+        t = len(dna)
+    if t == 0:
+        return []
+    bestRun = 0
+    bestOut = []
+    for _ in xrange(n):
+        thisOut, thisRun = searchFun(dna, k, t)
+        if thisRun < bestRun or bestOut == []:
+            bestOut = thisOut[:]
+            bestRun = thisRun
+    return bestOut
+
+def gibbsSampler(dna, k, t=-1, n=1):
+
+    def randomKmer(s, k, p):
+        motifs = [s[x:x+k] for x in xrange(len(s)-k+1)]
+        prob = [(profileProbability(j, p), j) for j in motifs]
+        ps = sum([x for (x, _) in prob])
+        prob = sorted([(x/ps, y) for (x, y) in prob], reverse=True)
+        die = []
+        d = 1
+        for p in prob:
+            d -= p[0]
+            die.append((d, p[1]))
+        z = random.random()
+        for c in die:
+            if c[0] < z:
+                return c[1]
+        return die[-1][1]
+
+    def sampler(dna, k, t, n):
+        bestMotifs = ['' for _ in dna]
+        for i, m in enumerate(dna):
+            d = random.randint(0, len(dna[0])-k)
+            bestMotifs[i] = m[d:d+k]
+        motifs = bestMotifs[:]
+        bestCur = score(countMatrix(bestMotifs))
+        for j in xrange(n):
+            i = random.randint(0, t-1)
+            prof = profile(countMatrix([m for z, m in enumerate(motifs) if z != i]))
+            motifs[i] = randomKmer(dna[i], k, prof)
+            thisS = score(countMatrix(motifs))
+            if thisS < bestCur:
+                bestMotifs = motifs[:]
+                bestCur = thisS
+        return bestMotifs, bestCur
+
+    if t == -1:
+        t = len(dna)
+    if t == 0:
+        return []
+    bestRun = 0
+    bestOut = []
+    for _ in xrange(20):
+        print '.',
+        thisOut, thisRun = sampler(dna, k, t, n)
+        if thisRun < bestRun or bestOut == []:
+            bestOut = thisOut[:]
+            bestRun = thisRun
+    print bestRun
+    return bestOut
+
 # out = entropy(profile(countMatrix(aReadT('dna.txt'))))
 # out = motifEnumeration(aReadT('dna.txt'), 5, 2)
 # dna = ['ttaccttAAc', 'gAtAtctgtc', 'Acggcgttcg', 'ccctAAAgag', 'cgtcAgAggt']
@@ -130,7 +213,9 @@ def greedyMotifSearch(dna, k, t=-1, pseudoCounts=True):
 # print neighbours('CAGAAAGGAAGGTCCCCATACACCGACGCACCAGTTTA', 3)
 # out = profileMostProbable(fRead('str.txt'), 7, aReadF('dna.txt'))
 # out = aReadF('dna.txt')
-out = greedyMotifSearch(aReadT('dna.txt'), 12)
+# out = greedyMotifSearch(aReadT('dna.txt'), 12)
+# out = randomisedMotifSearch(aReadT('dna.txt'), 15, n=1000)
+out = gibbsSampler(aReadT('dna.txt'), 15, n=2000)
 # print out
 for x in out:
     print x

@@ -41,20 +41,20 @@ def hammingDistance(p, q):
             d += 1
     return d
 
-def neighboursA(pattern, d):
-    if len(pattern) == 1:
-        return ['A', 'C', 'G', 'T']
-    neighbourhood = set()
-    suffixNeighbours = neighboursA(pattern[1:], d)
-    for text in suffixNeighbours:
-        if hammingDistance(pattern[1:], text)  < d:
-            for x in ['A', 'C', 'G', 'T']:
-                neighbourhood.add(x+text)
-        else:
-            neighbourhood.add(pattern[0]+text)
-    return neighbourhood
-
 def neighbours(pattern, d):
+    def neighboursA(pattern, d):
+        if len(pattern) == 1:
+            return ['A', 'C', 'G', 'T']
+        neighbourhood = set()
+        suffixNeighbours = neighboursA(pattern[1:], d)
+        for text in suffixNeighbours:
+            if hammingDistance(pattern[1:], text)  < d:
+                for x in ['A', 'C', 'G', 'T']:
+                    neighbourhood.add(x+text)
+            else:
+                neighbourhood.add(pattern[0]+text)
+        return neighbourhood
+
     if d == 0:
         return pattern
     return neighboursA(list(pattern), d)
