@@ -215,7 +215,7 @@ def gibbsSampler(dna, k, t=-1, n=1):
 # out = aReadF('dna.txt')
 # out = greedyMotifSearch(aReadT('dna.txt'), 12)
 # out = randomisedMotifSearch(aReadT('dna.txt'), 15, n=1000)
-out = gibbsSampler(aReadT('dna.txt'), 15, n=2000)
+out = gibbsSampler(aReadT('dna.txt'), 15, n=1000)
 # print out
 for x in out:
     print x
