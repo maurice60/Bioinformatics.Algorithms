@@ -59,3 +59,9 @@ def neighbours(pattern, d):
         return pattern
     return neighboursA(list(pattern), d)
 
+def composition(dna, k, sort=False, reverse=False):
+    if sort:
+        return sorted([dna[i:i+k] for i in xrange(len(dna) - k + 1)], reverse=reverse)
+    else:
+        return [dna[i:i+k] for i in xrange(len(dna) - k + 1)]
+    

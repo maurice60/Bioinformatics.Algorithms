@@ -111,7 +111,8 @@ def greedyMotifSearch(dna, k, t=-1, pseudoCounts=True):
     bestMotifs = [d[:k] for d in dna]
     motifs = bestMotifs[:]
     best, _ = score(countMatrix(bestMotifs))
-    trials = [dna[0][i:i+k] for i in xrange(len(dna[0]) - k + 1)]
+    # trials = [dna[0][i:i+k] for i in xrange(len(dna[0]) - k + 1)]
+    trials = composition(dna[0], k)
     for motif in trials:
         motifs[0] = motif
         for i in range(1, t):
@@ -213,9 +214,9 @@ def gibbsSampler(dna, k, t=-1, n=1):
 # print neighbours('CAGAAAGGAAGGTCCCCATACACCGACGCACCAGTTTA', 3)
 # out = profileMostProbable(fRead('str.txt'), 7, aReadF('dna.txt'))
 # out = aReadF('dna.txt')
-# out = greedyMotifSearch(aReadT('dna.txt'), 12)
+out = greedyMotifSearch(aReadT('dna.txt'), 12)
 # out = randomisedMotifSearch(aReadT('dna.txt'), 15, n=1000)
-out = gibbsSampler(aReadT('dna.txt'), 15, n=1000)
+# out = gibbsSampler(aReadT('dna.txt'), 15, n=1000)
 # print out
 for x in out:
     print x
