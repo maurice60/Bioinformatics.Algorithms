@@ -219,3 +219,7 @@ def mostFrequentApproximateReverse(text, k, d):
 # x = tRead('../Salmonella_enterica.txt')
 # print skewCount('CATTCCAGTACTTCATGATGGCGTGAAGA')
 # print len(neighbours('CCCC', 3))
+out = mostFrequentApproximateReverse(fRead('dna.txt'), 9, 2)
+# print out
+for x in out:
+    print x,
