@@ -161,23 +161,22 @@ def eulerianPath(graph):
             path = []
     return xpth
 
-def pairedComposition(text, k, d, sorted=True):
-    if sorted:
+def pairedComposition(text, k, d, sort=True):
+    if sort:
         return sorted([(text[i:i+k], text[i+k+d:i+2*k+d]) for i in xrange(len(text) - 2*k - d + 1)])
     return [(text[i:i+k], text[i+k+d:i+2*k+d]) for i in xrange(len(text) - 2*k - d + 1)]
 
-def stringSpelledByGappedPatterns(d, pairs):
-
+def toListPairs(pairs):
     prefix = []
     suffix = []
+    for p in pairs:
+        m = re.findall(r'(\w+)', p)
+        prefix.append(m[0])
+        suffix.append(m[1])
+    return prefix, suffix
 
-    def toListPairs():
-        for p in pairs:
-            m = re.findall(r'(\w+)', p)
-            prefix.append(m[0])
-            suffix.append(m[1])
-
-    toListPairs()
+def stringSpelledByGappedPatterns(d, pairs):
+    prefix, suffix = toListPairs(pairs)
     s1 = genomePathWalk(prefix)
     s2 = genomePathWalk(suffix)
     k = len(prefix[0])
@@ -188,6 +187,61 @@ def stringSpelledByGappedPatterns(d, pairs):
             ans = s1[:i] + s2
             break
     return ans
+
+def stringReconstruction(d, pairs):
+
+    def maximalNonBranchingPaths(graph):
+        def inOut(edges):
+            nodes = []
+            dicN = {}
+            for (p, s) in edges:
+                nodes.append((p[:-1], s[:-1], 'l'))
+                nodes.append((p[1:], s[1:], 't'))
+            for (p, s, x) in nodes:
+                if x == 'l':
+                    if not dicN.has_key((p, s)):
+                        dicN[(p, s)] = [1, 0]
+                    else:
+                        dicN[(p, s)][0] += 1
+                else:
+                    if not dicN.has_key((p, s)):
+                        dicN[(p, s)] = [0, 1]
+                    else:
+                        dicN[(p, s)][1] += 1
+            return dicN
+
+        nbp = []
+        nodes = inOut(graph)
+        for (p, s) in nodes:
+            if not nodes[(p, s)] == [1, 1]:
+                if nodes[(p, s)][0] > 0:
+                    for (i, j) in [(x, y) for (x, y) in graph if x[:-1] == p and y[:-1] == s]:
+                        nbp = [(i, j)]
+                        while nodes[(i[1:], j[1:])] == [1, 1]:
+                            for (m, n) in graph:
+                                if m[:-1] == i[1:] and n[:-1] == j[1:]:
+                                    i = m
+                                    j = n
+                                    break
+                            nbp.append((i, j))
+        return nbp
+
+    def stringSpelled(d, path):
+        prefix, suffix = zip(*path)
+        s1 = genomePathWalk(prefix)
+        s2 = genomePathWalk(suffix)
+        k = len(prefix[0])
+        ans = ''
+        for i in range(k+d, len(s1)-d+1):
+            q1 = s1[i:]
+            if s2.startswith(s1[i:]):
+                ans = s1[:i] + s2
+                break
+        return ans
+
+    prefix, suffix = toListPairs(pairs)
+    path = maximalNonBranchingPaths(zip(prefix, suffix))
+    return stringSpelled(d, path)
 
 # out = composition('0000111100101101000', 4, sort=True)
 # out = genomePathWalk(aReadT('dna.txt'))
@@ -201,12 +255,13 @@ def stringSpelledByGappedPatterns(d, pairs):
 # out = deBruijnPrint(bstr)
 # out = genomePathWalk(eulerianPath(deBruijnPrint(aReadT('dna.txt'))))    # (composition(fRead('dna.txt'), 4))
 # out = pairedComposition('AGCAGCTGCTGCA', 2, 1, sorted=False)
-out = stringSpelledByGappedPatterns(200, aReadT('dna.txt'))
+# out = stringSpelledByGappedPatterns(200, aReadT('dna.txt'))
+out = stringReconstruction(200, aReadT('dna.txt'))
 print out
 # print '->'.join(out)
 # out = deBruijnPrint(out)
 # for x in out:
 #     print '({0}|{1})'.format(*x),
-# with open('outf.txt', 'w') as fil:
-#     fil.writelines(out)
+with open('outf.txt', 'w') as fil:
+    fil.writelines(out)
 
