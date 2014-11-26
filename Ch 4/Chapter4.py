@@ -2,7 +2,7 @@ __author__ = 'maurice'
 import sys
 import os
 import re
-import copy
+# import copy
 # import math
 # import random
 
@@ -188,9 +188,48 @@ def stringSpelledByGappedPatterns(d, pairs):
             break
     return ans
 
+def maximalNonBranchingPaths(graph):
+
+    def inOut(edges):
+        nodes = []
+        dicN = {}
+        for p in edges:
+            nodes.append((p[:-1], 'l'))
+            nodes.append((p[1:], 't'))
+        for (p, x) in nodes:
+            if x == 'l':
+                if not dicN.has_key(p):
+                    dicN[p] = [1, 0]
+                else:
+                    dicN[p][0] += 1
+            else:
+                if not dicN.has_key(p):
+                    dicN[p] = [0, 1]
+                else:
+                    dicN[p][1] += 1
+        return dicN
+
+    paths = []
+    nodes = inOut(graph)
+    for p in nodes:
+        if not nodes[p] == [1, 1]:
+            if nodes[p][0] > 0:
+                for i in [x for x in graph if x[:-1] == p]:
+                    nbp = [i]
+                    while nodes[i[1:]] == [1, 1]:
+                        for m in graph:
+                            if m[:-1] == i[1:]:
+                                i = m
+                                break
+                        nbp.append(i)
+                    paths.append(nbp)
+
+    return sorted([genomePathWalk(l) for l in paths])
+
+
 def stringReconstruction(d, pairs):
 
-    def maximalNonBranchingPaths(graph):
+    def nonBranchingPaths(graph):
         def inOut(edges):
             nodes = []
             dicN = {}
@@ -240,7 +279,7 @@ def stringReconstruction(d, pairs):
         return ans
 
     prefix, suffix = toListPairs(pairs)
-    path = maximalNonBranchingPaths(zip(prefix, suffix))
+    path = nonBranchingPaths(zip(prefix, suffix))
     return stringSpelled(d, path)
 
 # out = composition('0000111100101101000', 4, sort=True)
@@ -256,12 +295,13 @@ def stringReconstruction(d, pairs):
 # out = genomePathWalk(eulerianPath(deBruijnPrint(aReadT('dna.txt'))))    # (composition(fRead('dna.txt'), 4))
 # out = pairedComposition('AGCAGCTGCTGCA', 2, 1, sorted=False)
 # out = stringSpelledByGappedPatterns(200, aReadT('dna.txt'))
-out = stringReconstruction(200, aReadT('dna.txt'))
-print out
+out = maximalNonBranchingPaths(aReadT('dna.txt'))
+for i in out:
+    print i,
 # print '->'.join(out)
 # out = deBruijnPrint(out)
 # for x in out:
 #     print '({0}|{1})'.format(*x),
 with open('outf.txt', 'w') as fil:
-    fil.writelines(out)
+    fil.writelines('\n'.join(out))
 
