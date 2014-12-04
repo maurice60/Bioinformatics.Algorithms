@@ -34,6 +34,12 @@ def aReadF(fileName):
             out.append([float(a) for a in l])
     return out
 
+def gRead(fileName):
+    with open(fileName, 'r') as x:
+        raw = [l for l in [line.rstrip('\n').rstrip('\r').split() for line in x]]
+        out = [[int(a) for a in l] for l in raw if l != ['-']]
+    return out
+
 def hammingDistance(p, q):
     d = 0
     for i, c in enumerate(p):

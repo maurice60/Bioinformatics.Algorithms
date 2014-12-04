@@ -2,6 +2,7 @@ __author__ = 'maurice'
 import sqlite3
 from collections import Counter
 from operator import itemgetter
+import copy
 
 def reverseComplement(text):
     ans = []
@@ -206,12 +207,13 @@ def consistent(spectrum, test):
 def peptideScore(sp, test):
     def testDict(te):
         tp = {}
-        for t in test:
+        for t in te:
             if tp.has_key(t):
                 tp[t] += 1
             else:
                 tp[t] = 1
         return tp
+
     x = 0
     tp = testDict(test)
     for t in tp.keys():
@@ -277,7 +279,7 @@ def trimT(leaderboard, spectrum, n):
 def leaderboardCyclopeptideSequencing(spectrum, n, pLis = allWeight(), retVal = 'l'):
 
     leaderboard = [[]]
-    leaderPeptide = ([], 0)
+    leaderPeptide = 0
     targ = max(spectrum)
     sp = {}
     for s in spectrum:
@@ -296,17 +298,17 @@ def leaderboardCyclopeptideSequencing(spectrum, n, pLis = allWeight(), retVal = 
             m = peptideMass(p)
             if m == targ:
                 s = peptideScore(sp, cyclopeptideSpectrum(p))
-                # print p, s
-                if s > leaderPeptide[1]:
-                    leaderPeptide = (p, s)
+                if s > leaderPeptide:
+                    leaderPeptide = s
                     lead = [p]
-                elif s == leaderPeptide[1]:
+                elif s == leaderPeptide:
                     lead.append(p)
             if m <= targ:
                 order.append(p)
         leaderboard = trim(order, sp, n)
+    lead.sort(reverse=True)
     if retVal == 'l':
-        return leaderPeptide[0]
+        return lead[0]
     else:
         return lead
 
@@ -318,6 +320,12 @@ def spectralConvolution(lis):
             c = y - x
             if c > 0:
                 a.append(y - x)
+    z = Counter(a)
+    zs = sorted(z.items(), key=itemgetter(1), reverse=True)
+    a = []
+    for (i, j) in zs:
+        for k in range(j):
+            a.append(i)
     return a
 
 def spectralConvolutionCount(lis):
@@ -337,27 +345,64 @@ def convolutionPeptideSequencing(lis, m, n, l='l'):
     ans = leaderboardCyclopeptideSequencing(lis, n, pepdides, l)
     return ans
 
+def peptidesOfMass(m):
+    pLis = allWeight()
+    work = {}
+    for y in [x for x in pLis]:
+        work[y] = 1
+    ans = []
+    while True:
+        new = {}
+        for i in work:
+            for j in pLis:
+                k = i + j
+                if m == k:
+                    ans.append(work[i])
+                elif m > k:
+                    try:
+                        new[k] += work[i]
+                    except KeyError:
+                        new[k] = work[i]
+        x = len(new)
+        if len(new) == 0:
+            break
+        work = copy.deepcopy(new)
+    return sum(ans)
 
-# print translation('CCUCGUACAGAAAUCAAC')
+def findC():
+    a = []
+    x = peptidesOfMass(1000)
+    for i in range(1000, 1500):
+        y = peptidesOfMass(i+1)
+        a.append(float(y)/x)
+        x = y
+    return sum(a)/len(a)
+
+# print translation(fRead('dna.txt'))
+# out = peptideEncoding(fRead('dna.txt'), 'NQGEGKEY')
 # print peptideNumber('LEADER')
-# out = leaderboardCyclopeptideSequencing(lRead('cycl.txt'), 1000, retVal='s', pLis=range(57, 201))
+# out = leaderboardCyclopeptideSequencing(lRead('cycl.txt'), 359) #, retVal='s', pLis=range(57, 201))
 # for lin in out:
 #     print '-'.join(str(x) for x in lin),
 # sp = {}
+# out = theoreticalSpectrum(fRead('dna.txt'))
 # for s in theoreticalSpectrum('VYYEVDWTMGRQIDPDEYPIAQCTRHRATILTLPDWQM'):
 #     if sp.has_key(s):
 #         sp[s] += 1
 #     else:
 #         sp[s] = 1
 # print peptideScore(Counter([0, 97, 97, 129, 129, 194, 203, 226, 226, 258, 323, 323, 323, 355, 403, 452]), linearSpectrum('PEEP'))
-# for out in cyclopeptideSequencing(lRead('cycl.txt')):
-#     print '-'.join(str(x) for x in out),
-# x = spectralConvolution([0, 137, 186, 323])
+# out = cyclopeptideSequencing(lRead('dna.txt'))
+# for z in out:
+#     print '-'.join(str(x) for x in z),
+# out = peptidesOfMass(1356)
+# print out
+# out = spectralConvolution(lRead('cycl.txt'))
 # print(x)
-# out = convolutionPeptideSequencing(lRead('cycl.txt'), 20, 1100)
-# # print len(out)
-# # for outL in out:
-# print '-'.join(str(x) for x in out),
+out = convolutionPeptideSequencing(lRead('cycl.txt'), 20, 1000, l='a')
+print len(out)
+for outL in out:
+    print '-'.join(str(x) for x in outL),
 # for x in trimT(lReadT('cycl.txt'), lRead('dna.txt'), 6):
 #     print x,
 # ans = sorted([0, 71, 113, 101, 131, 184, 202, 214, 232, 285, 303, 315, 345, 416])
@@ -369,4 +414,10 @@ def convolutionPeptideSequencing(lis, m, n, l='l'):
 # else:
 #     print 'no'
 # print consistent(lRead('cycl.txt'), linearSpectrum('ETC'))
-print Counter(spectralConvolution(lRead("cycl.txt")))
+# print Counter(spectralConvolution([0, 137, 186, 323]))
+# for x in out:
+#     print x,
+# with open('outf.txt', 'w') as fil:
+#     for z in out:
+#         fil.write('-'.join(str(x) for x in z))
+#         fil.write(' ')

@@ -249,7 +249,7 @@ def stringReconstruction(d, pairs):
                         dicN[(p, s)][1] += 1
             return dicN
 
-        nbp = []
+        paths = []
         nodes = inOut(graph)
         for (p, s) in nodes:
             if not nodes[(p, s)] == [1, 1]:
@@ -263,15 +263,18 @@ def stringReconstruction(d, pairs):
                                     j = n
                                     break
                             nbp.append((i, j))
-        return nbp
+                        paths.append(nbp)
+        return paths[:]
 
-    def stringSpelled(d, path):
+    def stringSpelled(k, d, path):
         prefix, suffix = zip(*path)
         s1 = genomePathWalk(prefix)
         s2 = genomePathWalk(suffix)
-        k = len(prefix[0])
-        ans = ''
-        for i in range(k+d, len(s1)-d+1):
+        if len(s1) == k:
+            ans = s1 + '-' + s2
+        else:
+            ans = ''
+        for i in range(k+d, len(s1)-d+2):
             q1 = s1[i:]
             if s2.startswith(s1[i:]):
                 ans = s1[:i] + s2
@@ -279,10 +282,26 @@ def stringReconstruction(d, pairs):
         return ans
 
     prefix, suffix = toListPairs(pairs)
-    path = nonBranchingPaths(zip(prefix, suffix))
-    return stringSpelled(d, path)
+    k = len(prefix[0])
+    path = [stringSpelled(k, d, x) for x in nonBranchingPaths(zip(prefix, suffix))]
+    for m, z in enumerate(path):
+        for y in [p for n, p in enumerate(path) if m != n]:
+            # print y[-2*k - d + 1:], z[:2*k+d]
+            t1 = y[-2*k - d + 1:]
+            t2 = z[:2*k+d-1]
+            match = True
+            for ix, ch in enumerate(t1):
+                ch1 = t2[ix]
+                if ch != ch1:
+                    if ch != '-' and ch1 != '-':
+                        match = False
+                        break
+            if match:
+                print y, z
+                break
+    return path
 
-# out = composition('0000111100101101000', 4, sort=True)
+# out = composition('1110001011', 3, sort=True)
 # out = genomePathWalk(aReadT('dna.txt'))
 # out = overlapGraph(aReadT('dna.txt'))
 # k = 4
@@ -293,15 +312,17 @@ def stringReconstruction(d, pairs):
 # out = genomePathWalk(eulerianCycle(deBruijnPrint(bstr))) #[:2**k]
 # out = deBruijnPrint(bstr)
 # out = genomePathWalk(eulerianPath(deBruijnPrint(aReadT('dna.txt'))))    # (composition(fRead('dna.txt'), 4))
-# out = pairedComposition('AGCAGCTGCTGCA', 2, 1, sorted=False)
-# out = stringSpelledByGappedPatterns(200, aReadT('dna.txt'))
-out = maximalNonBranchingPaths(aReadT('dna.txt'))
+# out = pairedComposition('CACCGATACTGATTCTGAAGCTT', 3, 1)
+# out = stringSpelledByGappedPatterns(1, aReadT('dna.txt'))
+# out = maximalNonBranchingPaths(aReadT('dna.txt'))
+out = stringReconstruction(1, aReadT('dna.txt'))
+# print out
 for i in out:
     print i,
 # print '->'.join(out)
 # out = deBruijnPrint(out)
 # for x in out:
 #     print '({0}|{1})'.format(*x),
-with open('outf.txt', 'w') as fil:
-    fil.writelines('\n'.join(out))
+# with open('outf.txt', 'w') as fil:
+#     fil.writelines('\n'.join(out))
 
