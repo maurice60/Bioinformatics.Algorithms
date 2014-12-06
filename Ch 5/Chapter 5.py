@@ -3,6 +3,8 @@ import sys
 import os
 import copy
 import math
+import re
+from collections import deque
 # import random
 
 sys.path.append(os.path.relpath('../'))
@@ -78,6 +80,84 @@ def LCSBacktrack(v, w):
     out.reverse()
     return ''.join(out)
 
+def topologicalOrdering(graph):
+
+    def toList():
+        nodes = {}
+        for g in graph:
+            m = re.findall(r'(\w+)', g)
+            nodes[int(m[0])] = ([int(i) for i in m[1:]])
+            # try:
+            #     nodes[m[0]][m[1]] = int(m[2])
+            # except KeyError:
+            #     nodes[m[0]] = {m[1]:int(m[2])}
+        return nodes
+
+    def outE():
+        inE = set()
+        for m in copG.values():
+            for n in m: #.keys():
+                inE.add(n)
+        return inE
+
+    def noIn():
+        return sorted([m for m in copG if outE().isdisjoint([m])])
+
+    graphOrg = toList()
+    copG = copy.deepcopy(graphOrg)
+    outpt = []
+    candidates = deque(noIn())
+    while len(candidates) > 0:
+        x = candidates.popleft()
+        outpt.append(x)
+        try:
+            y = copG[x]
+            del copG[x]
+        except KeyError:
+            y = {}
+        rem = outE()
+        for i in y:
+            if rem.isdisjoint([i]):
+                candidates.append(i)
+    return outpt
+
+def longestPathDAG(graph, s, e):
+
+    def toList():
+        nodes = {}
+        for g in graph:
+            m = re.findall(r'(\w+)', g)
+            # nodes[int(m[0])] = ([int(i) for i in m[1:]])
+            try:
+                nodes[int(m[0])][int(m[1])] = int(m[2])
+            except KeyError:
+                nodes[int(m[0])] = {int(m[1]):int(m[2])}
+        return nodes
+
+    def trav(n, p, tot):
+        if n == e:
+            l[tot] = p[:]
+            return
+        try:
+            for x, y in thisG[n].iteritems():
+                trav(x, p + [x], tot + y)
+        except KeyError:
+            return
+
+    l = {}
+    thisG = toList()
+    trav(s, [s], 0)
+    if len(l) > 0:
+        m = max(l.keys())
+        return m, l[m]
+    else:
+        return 0, []
+
 # print coins([9,5,3,1],  19163)
 # print manhattanTourist(14, 11, gRead('grid.txt'))
-print LCSBacktrack(fRead('strA.txt'), fRead('strB.txt'))
+# print LCSBacktrack(fRead('strA.txt'), fRead('strB.txt'))
+# out = topologicalOrdering(aReadT('grid.txt'))
+x, out = longestPathDAG(aReadT('grid.txt'), 0, 44)
+print x
+# for x in out:
+print '->'.join([str(c) for c in out])
