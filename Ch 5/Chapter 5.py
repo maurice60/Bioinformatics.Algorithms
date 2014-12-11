@@ -63,13 +63,21 @@ def manhattanTourist(n, m, grids):
     return s[n][m]
 
 def LCSBacktrack(v, w):
-    def bactrack():
-        s = [[0 for _ in range(len(w))] for _ in range(len(v))]
+    def backtrack():
+        s = [[0 for _ in range(len(w)+1)] for _ in range(len(v)+1)]
         b = copy.deepcopy(s)
-        for i in range(1, len(v)):
-            for j in range(1, len(w)):
+        cellsi = len(v) + 1
+        cellsj = len(w) + 1
+        for i in range(1, cellsi):
+            s[i][0] = s[i-1][0]
+            b[i][0] = 1
+        for j in range(1, cellsj):
+            s[0][j] = s[0][j-1]
+            b[0][j] = 2
+        for i in range(1, cellsi):
+            for j in range(1, cellsj):
                 tes = [s[i-1][j], s[i][j-1]]
-                eq = v[i] == w[j]
+                eq = v[i-1] == w[j-1]
                 if eq:
                     tes.append(s[i-1][j-1]+1)
                 s[i][j] = max(tes)
@@ -79,6 +87,8 @@ def LCSBacktrack(v, w):
                     b[i][j] = 2
                 if eq and s[i][j] == s[i-1][j-1]+1:
                     b[i][j] = 3
+        # for x in b:
+        #     print x
         return b
 
     def outputLCS(i, j):
@@ -91,14 +101,14 @@ def LCSBacktrack(v, w):
         else:
             ni = i-1
             nj = j-1
-            out.append(v[i])
+            out.append(v[i-1])
         return ni, nj
 
     out = []
-    bt = bactrack()
-    x = len(v) - 1
-    y = len(w) - 1
-    while x >= 0 and y >= 0:
+    bt = backtrack()
+    x = len(v) # - 1
+    y = len(w) # - 1
+    while x > 0 and y > 0:
         x, y = outputLCS(x, y)
     out.reverse()
     return ''.join(out)
@@ -181,7 +191,7 @@ def blosum62(a, b):
         return ''
     return out[0]
 
-def globalAlignment(v, w, sig = None, bs62 = {}):
+def globalAlignment(v, w, sig = None, bs62 = None):
 
     def blosum62DS():
         cx = sqlite3.connect("../Bioinformatics.db")
@@ -215,8 +225,10 @@ def globalAlignment(v, w, sig = None, bs62 = {}):
                 s[i][j] = max(tes)
                 if s[i][j] == tes[0]:
                     b[i][j] = 1
+                    continue
                 if s[i][j] == tes[1]:
                     b[i][j] = 2
+                    continue
                 if s[i][j] == tes[2]:
                     b[i][j] = 3
         score = s[len(v)][len(w)]
@@ -242,9 +254,9 @@ def globalAlignment(v, w, sig = None, bs62 = {}):
 
     outA = []
     outB = []
-    if bs62 == {}:
+    if bs62 is None:
         bs62 = blosum62DS()
-    if sig == None:
+    if sig is None:
         sig = -5
     sc, bt = backtrack()
     x = len(v)
@@ -255,7 +267,7 @@ def globalAlignment(v, w, sig = None, bs62 = {}):
     outB.reverse()
     return (sc, ''.join(outA), ''.join(outB))
 
-def localAlignment(v, w, sig = None):
+def localAlignment(v, w, sig = None, pam250 = None):
 
     def pam250DS():
         cx = sqlite3.connect("../Bioinformatics.db")
@@ -273,7 +285,6 @@ def localAlignment(v, w, sig = None):
     def backtrack():
         cellsi = len(v) + 1
         cellsj = len(w) + 1
-        pam250 = pam250DS()
         score = (0,0,0)
         s1 = [0 for _ in xrange(cellsj)]
         s = [s1[:] for _ in xrange(cellsi)]
@@ -293,8 +304,10 @@ def localAlignment(v, w, sig = None):
                     score = (i, j, s[i][j])
                 if s[i][j] == tes[1]:
                     b[i][j] = 1
+                    continue
                 if s[i][j] == tes[2]:
                     b[i][j] = 2
+                    continue
                 if s[i][j] == tes[3]:
                     b[i][j] = 3
         return score, b
@@ -319,7 +332,9 @@ def localAlignment(v, w, sig = None):
 
     outA = []
     outB = []
-    if sig == None:
+    if pam250 is None:
+        pam250 = pam250DS()
+    if sig is None:
         sig = -5
     (x, y, sc), bt = backtrack()
     while bt[x][y] != 0:
@@ -329,14 +344,110 @@ def localAlignment(v, w, sig = None):
     return (sc, ''.join(outA), ''.join(outB))
 
 def editDistance(a, b):
-    (_, txtA, txtB) = globalAlignment(a, b, sig=0)
+
+    def setupDict():
+        cx = sqlite3.connect("../Bioinformatics.db")
+        px = cx.cursor()
+        px.execute("SELECT * FROM pam250")
+        out = px.fetchall()
+        cx.close()
+        if out is None:
+            return {}
+        outD = {}
+        for x in out:
+            if x[0] == x[1]:
+                outD[(str(x[0]), str(x[1]))] = 0
+            else:
+                outD[(str(x[0]), str(x[1]))] = -1
+        return outD
+
+    dic = setupDict()
+    (_, txtA, txtB) = globalAlignment(a, b, sig=-1, bs62=dic)
     sc = 0
     for i, c in enumerate(txtA):
         if c == txtB[i]:
             continue
         sc += 1
-        print sc, c, txtB[i]
     return sc
+
+def fittingAlignment(v, w):
+    def setupDict():
+        cx = sqlite3.connect("../Bioinformatics.db")
+        px = cx.cursor()
+        px.execute("SELECT * FROM pam250")
+        out = px.fetchall()
+        cx.close()
+        if out is None:
+            return {}
+        outD = {}
+        for x in out:
+            if x[0] == x[1]:
+                outD[(str(x[0]), str(x[1]))] = 1
+            else:
+                outD[(str(x[0]), str(x[1]))] = -1
+        return outD
+
+    def backtrack():
+        cellsi = len(v) + 1
+        cellsj = len(w) + 1
+        score = (0,0,0)
+        s1 = [0 for _ in xrange(cellsj)]
+        s = [s1[:] for _ in xrange(cellsi)]
+        b = [s1[:] for _ in xrange(cellsi)]
+
+        # for i in range(1, cellsi):
+        #     # s[i][0] = s[i-1][0] + sig
+        #     b[i][0] = 0
+        for j in range(1, cellsj):
+            s[0][j] = s[0][j-1] + sig
+            b[0][j] = 2
+        for j in range(1, cellsj):
+            for i in range(1, cellsi):
+                tes = [s[i-1][j] + sig, s[i][j-1] + sig, s[i-1][j-1] + dic[(v[i-1], w[j-1])]]
+                s[i][j] = max(tes)
+                if j == len(w) and s[i][j] > score[2]:
+                    score = (i, j, s[i][j])
+                if s[i][j] == tes[0]:
+                    b[i][j] = 1
+                    continue
+                if s[i][j] == tes[1]:
+                    b[i][j] = 2
+                    continue
+                if s[i][j] == tes[2]:
+                    b[i][j] = 3
+        return score, b
+
+    def outputLCS(i, j):
+        if bt[i][j] == 1:
+            ni = i-1
+            nj = j
+            outA.append(v[i-1])
+            outB.append('-')
+        elif bt[i][j] == 2:
+            ni = i
+            nj = j-1
+            outA.append('-')
+            outB.append(w[j-1])
+        elif bt[i][j] == 3:
+            ni = i-1
+            nj = j-1
+            outA.append(v[i-1])
+            outB.append(w[j-1])
+        else:
+            ni = 0
+            nj = 0
+        return ni, nj
+
+    outA = []
+    outB = []
+    dic = setupDict()
+    sig = -1
+    (x, y, sc), bt = backtrack()
+    while bt[x][y] != 0:
+        x, y = outputLCS(x, y)
+    outA.reverse()
+    outB.reverse()
+    return (sc, ''.join(outA), ''.join(outB))
 
 # blosum62Load(aReadT('grid.txt'))
 # pam250Load(aReadT('grid.txt'))
@@ -346,9 +457,11 @@ def editDistance(a, b):
 # out = topologicalOrdering(aReadT('grid.txt'))
 # x, out = longestPathDAG(aReadT('grid.txt'), 0, 44)
 # out = globalAlignment(fRead('strA.txt'), fRead('strB.txt'))
+# print ''
 # out = localAlignment(fRead('strA.txt'), fRead('strB.txt'))
-print editDistance(fRead('strA.txt'), fRead('strB.txt'))
+# print editDistance(fRead('strA.txt'), fRead('strB.txt'))
+out = fittingAlignment(fRead('strA.txt'), fRead('strB.txt'))
 # print x
-# for x in out:
-#     print x
+for x in out:
+    print x
 # print '->'.join([str(c) for c in out])
