@@ -449,6 +449,79 @@ def fittingAlignment(v, w):
     outB.reverse()
     return (sc, ''.join(outA), ''.join(outB))
 
+def overlapAlignment(v, w):
+    def setupDict():
+        cx = sqlite3.connect("../Bioinformatics.db")
+        px = cx.cursor()
+        px.execute("SELECT * FROM pam250")
+        out = px.fetchall()
+        cx.close()
+        if out is None:
+            return {}
+        outD = {}
+        for x in out:
+            if x[0] == x[1]:
+                outD[(str(x[0]), str(x[1]))] = 1
+            else:
+                outD[(str(x[0]), str(x[1]))] = sig
+        return outD
+
+    def backtrack():
+        cellsi = len(v) + 1
+        cellsj = len(w) + 1
+        score = (0,0,0)
+        s1 = [0 for _ in xrange(cellsj)]
+        s = [s1[:] for _ in xrange(cellsi)]
+        b = [s1[:] for _ in xrange(cellsi)]
+
+        for j in range(1, cellsj):
+            for i in range(1, cellsi):
+                tes = [s[i-1][j] + sig, s[i][j-1] + sig, s[i-1][j-1] + dic[(v[i-1], w[j-1])]]
+                s[i][j] = max(tes)
+                if i == len(v) and s[i][j] > score[2]:
+                    score = (i, j, s[i][j])
+                if s[i][j] == tes[0]:
+                    b[i][j] = 1
+                    continue
+                if s[i][j] == tes[1]:
+                    b[i][j] = 2
+                    continue
+                if s[i][j] == tes[2]:
+                    b[i][j] = 3
+        return score, b
+
+    def outputLCS(i, j):
+        if bt[i][j] == 1:
+            ni = i-1
+            nj = j
+            outA.append(v[i-1])
+            outB.append('-')
+        elif bt[i][j] == 2:
+            ni = i
+            nj = j-1
+            outA.append('-')
+            outB.append(w[j-1])
+        elif bt[i][j] == 3:
+            ni = i-1
+            nj = j-1
+            outA.append(v[i-1])
+            outB.append(w[j-1])
+        else:
+            ni = 0
+            nj = 0
+        return ni, nj
+
+    outA = []
+    outB = []
+    sig = -2
+    dic = setupDict()
+    (x, y, sc), bt = backtrack()
+    while bt[x][y] != 0:
+        x, y = outputLCS(x, y)
+    outA.reverse()
+    outB.reverse()
+    return (sc, ''.join(outA), ''.join(outB))
+
 # blosum62Load(aReadT('grid.txt'))
 # pam250Load(aReadT('grid.txt'))
 # print coins([9,5,3,1],  19163)
@@ -460,7 +533,8 @@ def fittingAlignment(v, w):
 # print ''
 # out = localAlignment(fRead('strA.txt'), fRead('strB.txt'))
 # print editDistance(fRead('strA.txt'), fRead('strB.txt'))
-out = fittingAlignment(fRead('strA.txt'), fRead('strB.txt'))
+# out = fittingAlignment(fRead('strA.txt'), fRead('strB.txt'))
+out = overlapAlignment(fRead('strA.txt'), fRead('strB.txt'))
 # print x
 for x in out:
     print x
