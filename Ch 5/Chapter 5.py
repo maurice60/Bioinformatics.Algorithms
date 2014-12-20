@@ -171,10 +171,14 @@ def longestPathDAG(graph, s, e):
         nodes = {}
         for g in graph:
             m = re.findall(r'(\w+)', g)
+            # try:
+            #     nodes[int(m[0])][int(m[1])] = int(m[2])
+            # except KeyError:
+            #     nodes[int(m[0])] = {int(m[1]):int(m[2])}
             try:
-                nodes[int(m[0])][int(m[1])] = int(m[2])
+                nodes[m[0]][m[1]] = int(m[2])
             except KeyError:
-                nodes[int(m[0])] = {int(m[1]):int(m[2])}
+                nodes[m[0]] = {m[1]:int(m[2])}
         return nodes
 
     def trav(n, p, tot):
@@ -890,11 +894,11 @@ def global3Way(u, v, w):
 
 # blosum62Load(aReadT('grid.txt'))
 # pam250Load(aReadT('grid.txt'))
-# print coins([9,5,3,1],  19163)
+# print coins([3,2],  24)
 # print manhattanTourist(14, 11, gRead('grid.txt'))
 # print LCSBacktrack(fRead('strA.txt'), fRead('strB.txt'))
 # outp = topologicalOrdering(aReadT('grid.txt'))
-# x, outp = longestPathDAG(aReadT('grid.txt'), 0, 44)
+# scr, outp = longestPathDAG(aReadT('grid.txt'), 'a', 'g')
 # outp = globalAlignment(fRead('strA.txt'), fRead('strB.txt'))
 # print ''
 # outp = localAlignment(fRead('strA.txt'), fRead('strB.txt'))
@@ -903,10 +907,10 @@ def global3Way(u, v, w):
 # outp = overlapAlignment(fRead('strA.txt'), fRead('strB.txt'))
 # outp = affineGlobalAlignment(fRead('strA.txt'), fRead('strB.txt'))
 # outp = middleEdge(fRead('strA.txt'), fRead('strB.txt'))
-# outp = linearSpaceAlignment(fRead('strA.txt'), fRead('strB.txt'))
-sc, outp = global3Way(fRead('strA.txt'), fRead('strB.txt'), fRead('grid.txt'))
+outp = linearSpaceAlignment(fRead('strA.txt'), fRead('strB.txt'))
+# scr, outp = global3Way(fRead('strA.txt'), fRead('strB.txt'), fRead('grid.txt'))
 # print outp
-print sc
+# print scr
 for xoutp in outp:
     print xoutp
 # print '->'.join([str(c) for c in outp])
