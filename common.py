@@ -40,6 +40,14 @@ def gRead(fileName):
         out = [[int(a) for a in l] for l in raw if l != ['-']]
     return out
 
+def lReadB(fileName):
+    out = []
+    with open(fileName, 'r') as x:
+        for line in x:
+            raw = line.lstrip('(').rstrip(')').rstrip('\n').rstrip('\r').split()
+            out = [int(a) for a in raw]
+    return out
+
 def hammingDistance(p, q):
     d = 0
     for i, c in enumerate(p):
