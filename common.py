@@ -1,5 +1,7 @@
 __author__ = 'maurice'
 
+import re
+
 ADIC = {'A':0, 'C':1, 'G':2, 'T':3}
 
 def fRead(fileName):
@@ -46,6 +48,16 @@ def lReadB(fileName):
         for line in x:
             raw = line.lstrip('(').rstrip(')').rstrip('\n').rstrip('\r').split()
             out = [int(a) for a in raw]
+    return out
+
+def lReadBA(fileName):
+    out = []
+    raw = ''
+    with open(fileName, 'r') as x:
+        for line in x:
+            raw = [l for l in line.lstrip('(').rstrip(')').rstrip('\n').rstrip('\r').split(')(')]
+    for s in raw:
+        out.append([int(a) for a in s.split(' ')])
     return out
 
 def hammingDistance(p, q):
