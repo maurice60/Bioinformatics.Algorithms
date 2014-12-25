@@ -150,17 +150,56 @@ def graphToGenome(edges):
 
 def distance2Break(p, q):
     cycles = 0
-    pBlock = set()
-    qBlock = set()
-    for c in p:
-        cycles += 1
-        for b in c:
-            pBlock.add(abs(b))
-    for c in q:
-        cycles += 1
-        for b in c:
-            qBlock.add(abs(b))
-    return len(pBlock.intersection(qBlock)) - cycles
+    size = 0
+    for sz in p:
+        size += len(sz)
+    pBlock = {}
+    for b in colouredEdges(p, printOut=False):
+        pBlock[b[0]] = b[1]
+        pBlock[b[1]] = b[0]
+    qBlock = {}
+    for b in colouredEdges(q, printOut=False):
+        qBlock[b[0]] = b[1]
+        qBlock[b[1]] = b[0]
+    st = 0
+    ix = 0
+    while len(pBlock) > 0:
+        if st == 0:
+            st = pBlock.keys()[0]
+            ix = st
+            cycles += 1
+        this = pBlock.pop(ix)
+        pBlock.pop(this)
+        that = qBlock.pop(this)
+        qBlock.pop(that)
+        if that == st:
+            st = 0
+        else:
+            ix = that
+    return size - cycles
+
+def onGenomeGraph2Break(genomeGraph, i, i1, j, j1):
+    try:
+        assert isinstance(genomeGraph, set)
+    except AssertionError:
+        tx = genomeGraph
+        genomeGraph = set()
+        for w in re.findall('([0-9]+\W+[0-9]+)', tx):
+            x, y = w.split(',')
+            genomeGraph.add((int(x), int(y)))
+    out = set()
+    for x in genomeGraph:
+        if x[0] == i and x[1] == i1:
+            out.add((i, j))
+        elif x[0] == i1 and x[1] == i:
+            out.add((j,i))
+        elif x[0] == j and x[1] == j1:
+            out.add((i1, j1))
+        elif x[0] == j1 and x[1] == j:
+            out.add((j1, 11))
+        else:
+            out.add(x)
+    return out
 
 # outp = 0
 # for _ in plusAndMinusPermutations([1,2,3,4,5,6,7]):
@@ -170,8 +209,16 @@ def distance2Break(p, q):
 # print chromosomeToCycle(lReadB('strA.txt'))
 # print cycleToChromosome(lReadB('strA.txt'))
 # outp = colouredEdges(lReadBA('strA.txt'))
-outp = graphToGenome(fRead('strA.txt'))
+# outp = graphToGenome(fRead('strA.txt'))
 # outp = distance2Break(lReadBA('strA.txt'), lReadBA('strB.txt'))
-print outp
+outp = onGenomeGraph2Break(fRead('strA.txt'),73, 75, 5, 8)
+st = ''
+for o in outp:
+    st += '{}, '.format(o)
+st = st.rstrip(' ').rstrip(',')
+print st
+# outp = list(outp)
+# outp.sort()
+# print outp
 # for xo in outp:
 #     print xo,
