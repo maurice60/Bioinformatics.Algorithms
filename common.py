@@ -1,6 +1,6 @@
 __author__ = 'maurice'
 
-import re
+# import re
 
 ADIC = {'A':0, 'C':1, 'G':2, 'T':3}
 
@@ -59,6 +59,23 @@ def lReadBA(fileName):
     for s in raw:
         out.append([int(a) for a in s.split(' ')])
     return out
+
+def complementary(base):
+    if  base == 'A':
+        return 'T'
+    elif base == 'T':
+        return 'A'
+    elif base == 'C':
+        return 'G'
+    elif base == 'G':
+        return 'C'
+
+def reverseComplement(text):
+    ans = []
+    for c in text:
+        ans.append(complementary(c))
+    ans.reverse()
+    return ''.join(ans)
 
 def hammingDistance(p, q):
     d = 0

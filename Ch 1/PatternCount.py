@@ -1,5 +1,16 @@
 __author__ = 'maurice'
 from itertools import *
+import sys
+import os
+# import copy
+# import math
+# from collections import deque
+# from operator import add
+# import sqlite3
+# import numpy as np
+# import random
+sys.path.append(os.path.relpath('../'))
+from common import *
 
 def fRead(fileName):
     txt = ""
@@ -13,16 +24,6 @@ def tRead(fileName):
     st = ''.join([line.rstrip('\n').rstrip('\r') for line in fd if not line.startswith('>g')])
     fd.close()
     return st
-
-def complementary(base):
-    if  base == 'A':
-        return 'T'
-    elif base == 'T':
-        return 'A'
-    elif base == 'C':
-        return 'G'
-    elif base == 'G':
-        return 'C'
 
 def findFreq(frequent):
     x = max(frequent.values())
@@ -62,13 +63,6 @@ def occurrances(text, k):
         if not frequent.has_key(pat):
             frequent[pat] = patternCount(text, pat)
     return frequent
-
-def reverseComplement(text):
-    ans = []
-    for c in text:
-        ans.append(complementary(c))
-    ans.reverse()
-    return ''.join(ans)
 
 def clumpFind(text, k, l, t):
     out = []
