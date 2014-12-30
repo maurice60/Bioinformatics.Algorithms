@@ -3,12 +3,13 @@ import sys
 import os
 # import copy
 # import math
-from collections import deque
+from collections import deque, defaultdict
 # from operator import add
 # import sqlite3
 import numpy as np
 # import random
 from itertools import permutations, product
+import re
 
 sys.path.append(os.path.relpath('../'))
 from common import *
@@ -288,27 +289,30 @@ def shortestRearrangementScenario(p, q):
         print graphToGenome(red)
         cand = graph()
 
-def sharedKMers(a, b, k):
-    aDic = {}
-    for j in xrange(len(a) - k + 1):
-        aDic[j] =  a[j:j+k]
-    bDic = {}
+def sharedKMers(a, b, k, printOut=True):
+
+    bDic = defaultdict(list)
     for j in xrange(len(b) - k + 1):
         pat = b[j:j+k]
+        bDic[pat].append(j)
         patR = reverseComplement(pat)
-        try:
-            bDic[pat].append(j)
-        except KeyError:
-            bDic[pat] = [j]
-        try:
-            bDic[patR].append(j)
-        except KeyError:
-            bDic[patR] = [j]
-    out = []
-    for i, t in aDic.iteritems():
+        bDic[patR].append(j)
+    b = ''
+    if printOut:
+        out = []
+    else:
+        out = 0
+    # print len(a)
+    for i in xrange(len(a) - k + 1):
+        t =  a[i:i+k]
+    #     if i % 10000 == 0:
+    #         print i
         if bDic.has_key(t):
             for j in bDic[t]:
-                out.append((i, j))
+                if printOut:
+                    out.append((i, j))
+                else:
+                    out += 1
     return out
 
 # outp = 0
@@ -330,7 +334,8 @@ def sharedKMers(a, b, k):
 # print sto
 # outp = onGenome2Break(lReadBA('strA.txt'), 105, 107, 74, 76)
 # shortestRearrangementScenario(lReadBA('strA.txt'), lReadBA('strB.txt'))
-outp = sharedKMers(fRead('../E-coli.txt'), tRead('../Salmonella_enterica.txt'), 30)
-print len(outp)
-# for xo in outp:
-#     print xo
+# outp = sharedKMers(fRead('../E-coli.txt'), tRead('../Salmonella_enterica.txt'), 30, printOut=False)
+outp = sharedKMers(fRead('strA.txt'), fRead('strB.txt'), 19)
+# print outp
+for xo in outp:
+    print xo
